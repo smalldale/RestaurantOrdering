@@ -1,38 +1,80 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using RestaurantOrdering;
 using RestaurantOrdering.Data;
-using RestaurantOrdering.Services;
 
-Console.WriteLine("=== Restaurant Ordering Core Demo Application ===\n");
+// ============================================================================
+// RestaurantOrdering - console entry point
+// ----------------------------------------------------------------------------
+// Two ways to drive the same services:
+//
+//   1. DEMO (one-shot scenario)
+//      A straight-line walkthrough: seed data, CRUD for every entity, add and
+//      remove order items, checkout, then exit. Nothing to type.
+//
+//   2. INTERACTIVE (menu driven)
+//      A looping console CRUD front end for Categories, Menu items and Orders.
+//
+// Pick with an argument:
+//   dotnet run -- demo
+//   dotnet run -- interactive
+//   dotnet run                 (asks which mode)
+// ============================================================================
 
-// db option
 var options = new DbContextOptionsBuilder<RestaurantDbContext>()
-    .UseSqlite("Data Source=RestaurantDatabase.db")
+    .UseSqlite("Data Source=restaurant.db")
     .EnableSensitiveDataLogging()
     .Options;
 
-// Initialize our database context
-// In a real application, this would be configured through dependency injection
-using var context = new RestaurantDbContext(options);
-await ApplyMigrationsAsync(context);
+await using var context = new RestaurantDbContext(options);
 
-// Initialize our services
-var categoryService = new CategoryService(context);
-var menuService = new MenuService(context);
-var orderService = new OrderService(context);
+// 1) Apply migrations so the schema matches the model.
+// 2) Insert the fake Category (Food, Drink) + MenuItem rows once. The seed
+//    checks the table first, so a second run does not duplicate anything.
+Console.WriteLine("Applying database migrations...");
+await context.Database.MigrateAsync();
+await SeedData.EnsureSeededAsync(context);
 
+var mode = args.FirstOrDefault()?.Trim().ToLowerInvariant();
 
-/// <summary>
-/// Applies pending migrations to the database
-/// This is the proper way to handle database schema changes in production
-/// </summary>
-static async Task ApplyMigrationsAsync(CompanyDbContext context)
+if (string.IsNullOrEmpty(mode))
 {
-    Console.WriteLine("Applying database migrations...");
-    
-    // Apply any pending migrations
-    await context.Database.MigrateAsync();
-    
-    Console.WriteLine("Database migrations applied successfully!\n");
+    Console.WriteLine();
+    Console.WriteLine("Choose a mode:");
+    Console.WriteLine("  1. Interactive console CRUD");
+    Console.WriteLine("  2. One-shot scenario (straight-line)");
+    Console.Write("Select [1/2]: ");
+
+    mode = Console.ReadLine()?.Trim() switch
+    {
+        "2" => "demo",
+        _ => "interactive"
+    };
 }
 
-// Console.WriteLine("RestaurantOrdering is ready. Apply the schema with 'dotnet ef database update'.");
+try
+{
+    switch (mode)
+    {
+        case "demo":
+            await DemoRunner.RunAsync(context);
+            break;
+
+        case "interactive":
+            await InteractiveMenu.RunAsync(context);
+            break;
+
+        default:
+            Console.WriteLine($"Unknown mode '{mode}'. Use: dotnet run -- demo | interactive");
+            return 1;
+    }
+}
+catch (EndOfStreamException)
+{
+    // stdin closed (Ctrl+Z / piped input finished): leave quietly.
+    Console.WriteLine();
+    Console.WriteLine("Input closed. Goodbye.");
+}
+
+Console.WriteLine();
+Console.WriteLine("Done.");
+return 0;
