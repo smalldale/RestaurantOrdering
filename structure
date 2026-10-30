@@ -1,0 +1,15 @@
+RestaurantOrdering/
+│
+├── Models/
+│   ├── Enums/
+│   │   ├── OrderStatus.cs
+│   │   └── PaymentMethod.cs
+│   │
+│   ├── Category.cs
+│   ├── MenuItem.cs
+│   ├── Order.cs
+│   └── OrderItem.cs
+│
+├── Data/
+├── Services/
+└── Program.cs
