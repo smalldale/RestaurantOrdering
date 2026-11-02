@@ -5,6 +5,8 @@ VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantOrdering", "RestaurantOrdering\RestaurantOrdering.csproj", "{FAA460B4-239E-45BA-9491-142EB0FD2601}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RestaurantOrdering.API", "RestaurantOrdering.API\RestaurantOrdering.API.csproj", "{2570AD31-308E-4175-8AC7-64F5F9B269E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -18,5 +20,9 @@ Global
 		{FAA460B4-239E-45BA-9491-142EB0FD2601}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FAA460B4-239E-45BA-9491-142EB0FD2601}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FAA460B4-239E-45BA-9491-142EB0FD2601}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2570AD31-308E-4175-8AC7-64F5F9B269E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2570AD31-308E-4175-8AC7-64F5F9B269E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2570AD31-308E-4175-8AC7-64F5F9B269E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2570AD31-308E-4175-8AC7-64F5F9B269E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

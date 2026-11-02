@@ -1,0 +1,21 @@
+DTOs/
+├── Common/
+│   ├── PaginationQueryDto.cs
+│   └── PagedResponseDto.cs
+├── Category/
+│   ├── CreateCategoryDto.cs
+│   ├── UpdateCategoryDto.cs
+│   ├── CategoryResponseDto.cs
+│   └── CategoryQueryDto.cs
+├── MenuItem/
+│   ├── CreateMenuItemDto.cs
+│   ├── UpdateMenuItemDto.cs
+│   ├── MenuItemResponseDto.cs
+│   └── MenuItemQueryDto.cs
+└── Order/
+    ├── CreateOrderDto.cs
+    ├── UpdateOrderCustomerNameDto.cs
+    ├── AddOrderItemDto.cs
+    ├── CheckoutOrderDto.cs
+    ├── OrderResponseDto.cs
+    └── OrderItemResponseDto.cs

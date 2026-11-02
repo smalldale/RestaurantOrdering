@@ -1,0 +1,33 @@
+RestaurantOrdering.API/
+└── Validators/
+    ├── Common/
+    │   └── PaginationQueryValidator.cs
+    │
+    ├── Category/
+    │   ├── CategoryQueryValidator.cs
+    │   ├── CreateCategoryValidator.cs
+    │   └── UpdateCategoryValidator.cs
+    │
+    ├── MenuItem/
+    │   ├── MenuItemQueryValidator.cs
+    │   ├── CreateMenuItemValidator.cs
+    │   └── UpdateMenuItemValidator.cs
+    │
+    └── Order/
+        ├── CreateOrderValidator.cs
+        ├── UpdateOrderCustomerNameValidator.cs
+        ├── AddOrderItemValidator.cs
+        └── CheckoutOrderValidator.cs
+
+
+RestaurantOrdering.API/
+├── DTOs/
+│   ├── Common/
+│   ├── Category/
+│   ├── MenuItem/
+│   └── Order/
+│
+├── MappingProfiles/
+│   ├── CategoryProfile.cs
+│   ├── MenuItemProfile.cs
+│   └── OrderProfile.cs
