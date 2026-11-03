@@ -30,7 +30,7 @@ public class TokenService : ITokenService
         var secretKey = _configuration["Jwt:SecretKey"]
             ?? throw new InvalidOperationException("JWT SecretKey is missing.");
 
-        var key = new SymmetricSecurityKey(Convert.FromBase64String(secretKey));
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
 
         var credentials = new SigningCredentials(
             key,

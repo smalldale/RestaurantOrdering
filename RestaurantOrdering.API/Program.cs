@@ -63,12 +63,14 @@ var jwtSettings = builder.Configuration.GetSection("Jwt");
 var secretKey = jwtSettings["SecretKey"]
     ?? throw new InvalidOperationException("JWT SecretKey is missing.");
 
-var keyBytes = Encoding.ASCII.GetBytes(secretKey);
+// Keep the key as a plain string in configuration (no generated key).
+// TokenService must derive the signing key from the same UTF-8 bytes.
+var keyBytes = Encoding.UTF8.GetBytes(secretKey);
 
 if (keyBytes.Length < 32)
 {
     throw new InvalidOperationException(
-        "JWT SecretKey must be at least 32 ASCII characters.");
+        "JWT SecretKey must be at least 32 characters.");
 }
 
 var signingKey = new SymmetricSecurityKey(keyBytes);
@@ -206,12 +208,18 @@ var app = builder.Build();
 // Seed data
 using (var scope = app.Services.CreateScope())
 {
-    // Seed roles and admin user
     var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<RestaurantDbContext>();
+
+    // Uncomment on a fresh machine (or when migrations change) to create/update
+    // the SQLite schema before seeding. Keep commented when using an existing
+    // restaurant.db or after running "dotnet ef database update".
+    // await context.Database.MigrateAsync();
+
+    // Seed roles, admin, and staff users
     await IdentitySeeder.EnsureSeededAsync(services);
 
     // Seed Category and MenuItem
-    var context = services.GetRequiredService<RestaurantDbContext>();
     await RestaurantDataSeeder.EnsureSeededAsync(context);
 }
 
@@ -231,6 +239,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("AllowAll");
 
 app.UseAuthentication();
 app.UseAuthorization();
