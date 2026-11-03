@@ -16,6 +16,15 @@ public interface IOrderService
         int orderId,
         UpdateOrderCustomerNameDto dto);
 
+    Task<ApiResponseDto<OrderResponseDto>> UpdateStatusAsync(
+        int orderId,
+        UpdateOrderStatusDto dto);
+
+    Task<ApiResponseDto<OrderResponseDto>> UpdateItemQuantityAsync(
+        int orderId,
+        int orderItemId,
+        UpdateOrderItemQuantityDto dto);
+
     Task<ApiResponseDto<bool>> DeleteAsync(int id);
 
     Task<ApiResponseDto<OrderResponseDto>> AddItemAsync(

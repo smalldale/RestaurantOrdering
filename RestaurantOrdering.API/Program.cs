@@ -129,6 +129,8 @@ builder.Services.AddScoped<IValidator<CreateOrderDto>, CreateOrderValidator>();
 builder.Services.AddScoped<IValidator<UpdateOrderCustomerNameDto>, UpdateOrderCustomerNameValidator>();
 builder.Services.AddScoped<IValidator<AddOrderItemDto>, AddOrderItemValidator>();
 builder.Services.AddScoped<IValidator<CheckoutOrderDto>, CheckoutOrderValidator>();
+builder.Services.AddScoped<IValidator<UpdateOrderStatusDto>, UpdateOrderStatusValidator>();
+builder.Services.AddScoped<IValidator<UpdateOrderItemQuantityDto>, UpdateOrderItemQuantityValidator>();
 // Login and Refresh Token
 builder.Services.AddScoped<IValidator<LoginDto>, LoginValidator>();
 builder.Services.AddScoped<IValidator<RefreshTokenDto>, RefreshTokenValidator>();

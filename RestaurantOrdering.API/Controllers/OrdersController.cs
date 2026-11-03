@@ -17,19 +17,25 @@ public class OrdersController : ControllerBase
     private readonly IValidator<AddOrderItemDto> _addItemValidator;
     private readonly IValidator<CheckoutOrderDto> _checkoutValidator;
     private readonly IValidator<UpdateOrderCustomerNameDto> _updateCustomerNameValidator;
+    private readonly IValidator<UpdateOrderStatusDto> _updateStatusValidator;
+    private readonly IValidator<UpdateOrderItemQuantityDto> _updateItemQuantityValidator;
 
     public OrdersController(
         IOrderService orderService,
         IValidator<CreateOrderDto> createValidator,
         IValidator<AddOrderItemDto> addItemValidator,
         IValidator<CheckoutOrderDto> checkoutValidator,
-        IValidator<UpdateOrderCustomerNameDto> updateCustomerNameValidator)
+        IValidator<UpdateOrderCustomerNameDto> updateCustomerNameValidator,
+        IValidator<UpdateOrderStatusDto> updateStatusValidator,
+        IValidator<UpdateOrderItemQuantityDto> updateItemQuantityValidator)
     {
         _orderService = orderService;
         _createValidator = createValidator;
         _addItemValidator = addItemValidator;
         _checkoutValidator = checkoutValidator;
         _updateCustomerNameValidator = updateCustomerNameValidator;
+        _updateStatusValidator = updateStatusValidator;
+        _updateItemQuantityValidator = updateItemQuantityValidator;
     }
 
     // GET: api/orders
@@ -48,7 +54,7 @@ public class OrdersController : ControllerBase
         var result = await _orderService.GetByIdAsync(id);
 
         if (!result.Success)
-            return NotFound(result);
+            return StatusCode(result.StatusCode, result);
 
         return Ok(result);
     }
@@ -65,7 +71,7 @@ public class OrdersController : ControllerBase
         var result = await _orderService.CreateAsync(dto);
 
         if (!result.Success)
-            return BadRequest(result);
+            return StatusCode(result.StatusCode, result);
 
         return CreatedAtAction(
             nameof(GetById),
@@ -87,7 +93,49 @@ public class OrdersController : ControllerBase
         var result = await _orderService.UpdateCustomerNameAsync(id, dto);
 
         if (!result.Success)
-            return BadRequest(result);
+            return StatusCode(result.StatusCode, result);
+
+        return Ok(result);
+    }
+
+    // PUT: api/orders/{id}/status
+    [HttpPut("{id:int}/status")]
+    public async Task<IActionResult> UpdateStatus(
+        int id,
+        [FromBody] UpdateOrderStatusDto dto)
+    {
+        var validation = await _updateStatusValidator.ValidateAsync(dto);
+
+        if (!validation.IsValid)
+            return ValidationError(validation);
+
+        var result = await _orderService.UpdateStatusAsync(id, dto);
+
+        if (!result.Success)
+            return StatusCode(result.StatusCode, result);
+
+        return Ok(result);
+    }
+
+    // PUT: api/orders/{id}/items/{orderItemId}
+    [HttpPut("{id:int}/items/{orderItemId:int}")]
+    public async Task<IActionResult> UpdateItemQuantity(
+        int id,
+        int orderItemId,
+        [FromBody] UpdateOrderItemQuantityDto dto)
+    {
+        var validation = await _updateItemQuantityValidator.ValidateAsync(dto);
+
+        if (!validation.IsValid)
+            return ValidationError(validation);
+
+        var result = await _orderService.UpdateItemQuantityAsync(
+            id,
+            orderItemId,
+            dto);
+
+        if (!result.Success)
+            return StatusCode(result.StatusCode, result);
 
         return Ok(result);
     }
@@ -106,7 +154,7 @@ public class OrdersController : ControllerBase
         var result = await _orderService.AddItemAsync(id, dto);
 
         if (!result.Success)
-            return BadRequest(result);
+            return StatusCode(result.StatusCode, result);
 
         return Ok(result);
     }
@@ -118,7 +166,7 @@ public class OrdersController : ControllerBase
         var result = await _orderService.RemoveItemAsync(id, orderItemId);
 
         if (!result.Success)
-            return BadRequest(result);
+            return StatusCode(result.StatusCode, result);
 
         return Ok(result);
     }
@@ -137,7 +185,7 @@ public class OrdersController : ControllerBase
         var result = await _orderService.CheckoutAsync(id, dto);
 
         if (!result.Success)
-            return BadRequest(result);
+            return StatusCode(result.StatusCode, result);
 
         return Ok(result);
     }
@@ -149,7 +197,7 @@ public class OrdersController : ControllerBase
         var result = await _orderService.DeleteAsync(id);
 
         if (!result.Success)
-            return BadRequest(result);
+            return StatusCode(result.StatusCode, result);
 
         return Ok(result);
     }

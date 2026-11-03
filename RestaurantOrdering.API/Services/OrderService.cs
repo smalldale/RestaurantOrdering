@@ -59,7 +59,7 @@ public class OrderService : IOrderService
 
         if (order is null)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
                 "Order not found.");
         }
 
@@ -78,13 +78,13 @@ public class OrderService : IOrderService
 
         if (order is null)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
                 "Order not found.");
         }
 
         if (order.Status != OrderStatus.Pending)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.ConflictResult(
                 "Only pending orders can be updated.");
         }
 
@@ -101,19 +101,110 @@ public class OrderService : IOrderService
             "Customer name updated successfully.");
     }
 
+    public async Task<ApiResponseDto<OrderResponseDto>> UpdateStatusAsync(
+        int orderId,
+        UpdateOrderStatusDto dto)
+    {
+        var order = await _repository.GetByIdAsync(orderId);
+
+        if (order is null)
+        {
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
+                "Order not found.");
+        }
+
+        if (order.Status == dto.Status)
+        {
+            return ApiResponseDto<OrderResponseDto>.ConflictResult(
+                $"Order is already in {order.Status} status.");
+        }
+
+        if (IsTerminalStatus(order.Status))
+        {
+            return ApiResponseDto<OrderResponseDto>.ConflictResult(
+                $"{order.Status} orders can no longer be updated.");
+        }
+
+        if (!IsAllowedTransition(order.Status, dto.Status))
+        {
+            return ApiResponseDto<OrderResponseDto>.ConflictResult(
+                $"Invalid status transition from {order.Status} to {dto.Status}.");
+        }
+
+        if (dto.Status == OrderStatus.Preparing &&
+            order.OrderItems.Count == 0)
+        {
+            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+                "Cannot start preparing an order without items.");
+        }
+
+        order.Status = dto.Status;
+
+        await _repository.SaveChangesAsync();
+
+        return await GetUpdatedOrderResponseAsync(
+            order,
+            $"Order status updated to {order.Status} successfully.");
+    }
+
+    public async Task<ApiResponseDto<OrderResponseDto>> UpdateItemQuantityAsync(
+        int orderId,
+        int orderItemId,
+        UpdateOrderItemQuantityDto dto)
+    {
+        var order = await _repository.GetByIdAsync(orderId);
+
+        if (order is null)
+        {
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
+                "Order not found.");
+        }
+
+        if (order.Status != OrderStatus.Pending)
+        {
+            return ApiResponseDto<OrderResponseDto>.ConflictResult(
+                "Items can only be updated on pending orders.");
+        }
+
+        var orderItem = order.OrderItems.FirstOrDefault(
+            oi => oi.Id == orderItemId);
+
+        if (orderItem is null)
+        {
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
+                "Order item not found.");
+        }
+
+        if (dto.Quantity <= 0)
+        {
+            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+                "Quantity must be greater than zero.");
+        }
+
+        orderItem.Quantity = dto.Quantity;
+
+        RecalculateTotal(order);
+
+        await _repository.SaveChangesAsync();
+
+        return await GetUpdatedOrderResponseAsync(
+            order,
+            "Order item quantity updated successfully.");
+    }
+
     public async Task<ApiResponseDto<bool>> DeleteAsync(int id)
     {
         var order = await _repository.GetByIdAsync(id);
 
         if (order is null)
         {
-            return ApiResponseDto<bool>.ErrorResult(
+            return ApiResponseDto<bool>.NotFoundResult(
                 "Order not found.");
         }
 
         if (order.Status != OrderStatus.Pending)
         {
-            return ApiResponseDto<bool>.ErrorResult(
+            return ApiResponseDto<bool>.ConflictResult(
                 "Only pending orders can be deleted.");
         }
 
@@ -134,13 +225,13 @@ public class OrderService : IOrderService
 
         if (order is null)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
                 "Order not found.");
         }
 
         if (order.Status != OrderStatus.Pending)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.ConflictResult(
                 "Items can only be added to pending orders.");
         }
 
@@ -155,13 +246,13 @@ public class OrderService : IOrderService
 
         if (menuItem is null)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
                 "Menu item not found.");
         }
 
         if (!menuItem.IsAvailable)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.ConflictResult(
                 "Menu item is currently unavailable.");
         }
 
@@ -199,13 +290,13 @@ public class OrderService : IOrderService
 
         if (order is null)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
                 "Order not found.");
         }
 
         if (order.Status != OrderStatus.Pending)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.ConflictResult(
                 "Items can only be removed from pending orders.");
         }
 
@@ -214,7 +305,7 @@ public class OrderService : IOrderService
 
         if (orderItem is null)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
                 "Order item not found.");
         }
 
@@ -237,13 +328,13 @@ public class OrderService : IOrderService
 
         if (order is null)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
                 "Order not found.");
         }
 
         if (order.Status != OrderStatus.Pending)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.ConflictResult(
                 "Only pending orders can be checked out.");
         }
 
@@ -272,7 +363,7 @@ public class OrderService : IOrderService
 
         if (updatedOrder is null)
         {
-            return ApiResponseDto<OrderResponseDto>.ErrorResult(
+            return ApiResponseDto<OrderResponseDto>.NotFoundResult(
                 "Unable to retrieve the updated order.");
         }
 
@@ -281,6 +372,27 @@ public class OrderService : IOrderService
         return ApiResponseDto<OrderResponseDto>.SuccessResult(
             response,
             message);
+    }
+
+    private static bool IsTerminalStatus(OrderStatus status)
+    {
+        return status is OrderStatus.Completed or OrderStatus.Canceled;
+    }
+
+    private static bool IsAllowedTransition(
+        OrderStatus current,
+        OrderStatus next)
+    {
+        return (current, next) switch
+        {
+            (OrderStatus.Pending, OrderStatus.Preparing) => true,
+            (OrderStatus.Pending, OrderStatus.Canceled) => true,
+            (OrderStatus.Preparing, OrderStatus.Ready) => true,
+            (OrderStatus.Preparing, OrderStatus.Canceled) => true,
+            (OrderStatus.Ready, OrderStatus.Completed) => true,
+            (OrderStatus.Ready, OrderStatus.Canceled) => true,
+            _ => false
+        };
     }
 
     private static void RecalculateTotal(Order order)
