@@ -13,15 +13,18 @@ namespace RestaurantOrdering.API.Controllers;
 public class CategoriesController : ControllerBase
 {
     private readonly ICategoryService _categoryService;
+    private readonly IValidator<CategoryQueryDto> _queryValidator;
     private readonly IValidator<CreateCategoryDto> _createValidator;
     private readonly IValidator<UpdateCategoryDto> _updateValidator;
 
     public CategoriesController(
         ICategoryService categoryService,
+        IValidator<CategoryQueryDto> queryValidator,
         IValidator<CreateCategoryDto> createValidator,
         IValidator<UpdateCategoryDto> updateValidator)
     {
         _categoryService = categoryService;
+        _queryValidator = queryValidator;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -32,6 +35,19 @@ public class CategoriesController : ControllerBase
     public async Task<IActionResult> GetAll(
         [FromQuery] CategoryQueryDto query)
     {
+        var validation = await _queryValidator.ValidateAsync(query);
+
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors
+                .Select(x => x.ErrorMessage)
+                .ToList();
+
+            return BadRequest(ApiResponseDto<object>.ErrorResult(
+                "Validation failed.",
+                errors));
+        }
+
         var result = await _categoryService.GetAllAsync(query);
 
         return Ok(result);

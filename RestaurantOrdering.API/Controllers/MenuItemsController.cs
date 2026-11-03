@@ -13,15 +13,18 @@ namespace RestaurantOrdering.API.Controllers;
 public class MenuItemsController : ControllerBase
 {
     private readonly IMenuService _menuService;
+    private readonly IValidator<MenuItemQueryDto> _queryValidator;
     private readonly IValidator<CreateMenuItemDto> _createValidator;
     private readonly IValidator<UpdateMenuItemDto> _updateValidator;
 
     public MenuItemsController(
         IMenuService menuService,
+        IValidator<MenuItemQueryDto> queryValidator,
         IValidator<CreateMenuItemDto> createValidator,
         IValidator<UpdateMenuItemDto> updateValidator)
     {
         _menuService = menuService;
+        _queryValidator = queryValidator;
         _createValidator = createValidator;
         _updateValidator = updateValidator;
     }
@@ -32,6 +35,19 @@ public class MenuItemsController : ControllerBase
     public async Task<IActionResult> GetAll(
         [FromQuery] MenuItemQueryDto query)
     {
+        var validation = await _queryValidator.ValidateAsync(query);
+
+        if (!validation.IsValid)
+        {
+            var errors = validation.Errors
+                .Select(x => x.ErrorMessage)
+                .ToList();
+
+            return BadRequest(ApiResponseDto<object>.ErrorResult(
+                "Validation failed.",
+                errors));
+        }
+
         var result = await _menuService.GetAllAsync(query);
 
         return Ok(result);

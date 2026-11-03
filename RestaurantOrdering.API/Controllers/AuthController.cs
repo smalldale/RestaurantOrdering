@@ -2,6 +2,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using RestaurantOrdering.API.DTOs.Auth;
+using RestaurantOrdering.API.DTOs.Common;
 using RestaurantOrdering.API.Services.Interfaces;
 
 namespace RestaurantOrdering.API.Controllers;
@@ -32,7 +33,7 @@ public class AuthController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(validationResult.Errors);
+            return ValidationError(validationResult);
         }
 
         var result = await _authService.LoginAsync(dto);
@@ -53,7 +54,7 @@ public class AuthController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(validationResult.Errors);
+            return ValidationError(validationResult);
         }
 
         var result = await _authService.RefreshAsync(dto);
@@ -74,7 +75,7 @@ public class AuthController : ControllerBase
 
         if (!validationResult.IsValid)
         {
-            return BadRequest(validationResult.Errors);
+            return ValidationError(validationResult);
         }
 
         var result = await _authService.LogoutAsync(dto);
@@ -85,5 +86,18 @@ public class AuthController : ControllerBase
         }
 
         return Ok(result);
+    }
+
+    private static BadRequestObjectResult ValidationError(
+        FluentValidation.Results.ValidationResult validation)
+    {
+        var errors = validation.Errors
+            .Select(x => x.ErrorMessage)
+            .ToList();
+
+        return new BadRequestObjectResult(
+            ApiResponseDto<object>.ErrorResult(
+                "Validation failed.",
+                errors));
     }
 }
