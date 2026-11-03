@@ -29,9 +29,16 @@ public class CategoryRepository : ICategoryRepository
 
         var totalCount = await query.CountAsync();
 
+        var skip = Math.Max(0L, (long)(pageNumber - 1) * pageSize);
+
+        if (skip > int.MaxValue)
+        {
+            return (new List<Category>(), totalCount);
+        }
+
         var items = await query
             .OrderBy(c => c.Id)
-            .Skip((pageNumber - 1) * pageSize)
+            .Skip((int)skip)
             .Take(pageSize)
             .ToListAsync();
 

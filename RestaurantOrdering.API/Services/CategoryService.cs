@@ -51,8 +51,10 @@ public class CategoryService : ICategoryService
             PageNumber = query.PageNumber,
             PageSize = query.PageSize,
             TotalCount = totalCount,
-            TotalPages = (int)Math.Ceiling(
-                (double)totalCount / query.PageSize)
+            TotalPages = query.PageSize > 0
+                ? (int)Math.Ceiling(
+                    (double)totalCount / query.PageSize)
+                : 0
         };
 
         return ApiResponseDto<PagedResponseDto<CategoryResponseDto>>.SuccessResult(

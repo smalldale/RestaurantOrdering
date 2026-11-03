@@ -45,9 +45,16 @@ public class MenuItemRepository : IMenuItemRepository
 
         var totalCount = await query.CountAsync();
 
+        var skip = Math.Max(0L, (long)(pageNumber - 1) * pageSize);
+
+        if (skip > int.MaxValue)
+        {
+            return (new List<MenuItem>(), totalCount);
+        }
+
         var items = await query
             .OrderBy(m => m.Id)
-            .Skip((pageNumber - 1) * pageSize)
+            .Skip((int)skip)
             .Take(pageSize)
             .ToListAsync();
 
