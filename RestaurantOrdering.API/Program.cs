@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using System.Text;
+using System.Reflection;
 using FluentValidation;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -17,6 +18,7 @@ using RestaurantOrdering.API.Repositories;
 using RestaurantOrdering.API.Repositories.Interfaces;
 using RestaurantOrdering.API.Services;
 using RestaurantOrdering.API.Services.Interfaces;
+using RestaurantOrdering.API.Swagger;
 using RestaurantOrdering.API.Validators.Auth;
 using RestaurantOrdering.API.Validators.Category;
 using RestaurantOrdering.API.Validators.MenuItem;
@@ -192,6 +194,16 @@ builder.Services.AddSwaggerGen(options =>
             Array.Empty<string>()
         }
     });
+
+    // Read XML documentation for controllers, DTOs, and enums.
+    var xmlFileName = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFileName);
+
+    if (File.Exists(xmlPath))
+    {
+        options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+        options.SchemaFilter<EnumXmlCommentsSchemaFilter>(xmlPath);
+    }
 });
 
 // Add CORS
