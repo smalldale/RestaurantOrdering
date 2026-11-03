@@ -28,7 +28,7 @@ public class MenuService : IMenuService
 
         if (!categoryExists)
         {
-            return ApiResponseDto<MenuItemResponseDto>.ErrorResult(
+            return ApiResponseDto<MenuItemResponseDto>.NotFoundResult(
                 "Category not found.");
         }
 
@@ -82,7 +82,7 @@ public class MenuService : IMenuService
 
         if (menuItem is null)
         {
-            return ApiResponseDto<MenuItemResponseDto>.ErrorResult(
+            return ApiResponseDto<MenuItemResponseDto>.NotFoundResult(
                 "Menu item not found.");
         }
 
@@ -101,7 +101,7 @@ public class MenuService : IMenuService
 
         if (menuItem is null)
         {
-            return ApiResponseDto<MenuItemResponseDto>.ErrorResult(
+            return ApiResponseDto<MenuItemResponseDto>.NotFoundResult(
                 "Menu item not found.");
         }
 
@@ -110,7 +110,7 @@ public class MenuService : IMenuService
 
         if (!categoryExists)
         {
-            return ApiResponseDto<MenuItemResponseDto>.ErrorResult(
+            return ApiResponseDto<MenuItemResponseDto>.NotFoundResult(
                 "Category not found.");
         }
 
@@ -134,7 +134,7 @@ public class MenuService : IMenuService
 
         if (menuItem is null)
         {
-            return ApiResponseDto<bool>.ErrorResult(
+            return ApiResponseDto<bool>.NotFoundResult(
                 "Menu item not found.");
         }
 
@@ -142,7 +142,7 @@ public class MenuService : IMenuService
 
         if (hasOrderHistory)
         {
-            return ApiResponseDto<bool>.ErrorResult(
+            return ApiResponseDto<bool>.ConflictResult(
                 "Cannot delete a menu item that has order history.");
         }
 

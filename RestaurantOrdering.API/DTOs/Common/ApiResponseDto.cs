@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace RestaurantOrdering.API.DTOs.Common;
 
 public class ApiResponseDto<T>
@@ -7,6 +9,11 @@ public class ApiResponseDto<T>
     public T? Data { get; set; }
     public List<string> Errors { get; set; } = [];
 
+    // Transport detail used by controllers to pick the HTTP status code.
+    // It is not serialized, so the response body shape stays unchanged.
+    [JsonIgnore]
+    public int StatusCode { get; set; } = StatusCodes.Status200OK;
+
     public static ApiResponseDto<T> SuccessResult(
         T data,
         string message = "Success")
@@ -15,7 +22,8 @@ public class ApiResponseDto<T>
         {
             Success = true,
             Message = message,
-            Data = data
+            Data = data,
+            StatusCode = StatusCodes.Status200OK
         };
     }
 
@@ -27,7 +35,34 @@ public class ApiResponseDto<T>
         {
             Success = false,
             Message = message,
-            Errors = errors ?? []
+            Errors = errors ?? [],
+            StatusCode = StatusCodes.Status400BadRequest
+        };
+    }
+
+    public static ApiResponseDto<T> NotFoundResult(
+        string message,
+        List<string>? errors = null)
+    {
+        return new ApiResponseDto<T>
+        {
+            Success = false,
+            Message = message,
+            Errors = errors ?? [],
+            StatusCode = StatusCodes.Status404NotFound
+        };
+    }
+
+    public static ApiResponseDto<T> ConflictResult(
+        string message,
+        List<string>? errors = null)
+    {
+        return new ApiResponseDto<T>
+        {
+            Success = false,
+            Message = message,
+            Errors = errors ?? [],
+            StatusCode = StatusCodes.Status409Conflict
         };
     }
 }

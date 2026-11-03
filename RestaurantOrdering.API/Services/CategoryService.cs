@@ -68,7 +68,7 @@ public class CategoryService : ICategoryService
 
         if (category is null)
         {
-            return ApiResponseDto<CategoryResponseDto>.ErrorResult(
+            return ApiResponseDto<CategoryResponseDto>.NotFoundResult(
                 "Category not found.");
         }
 
@@ -87,7 +87,7 @@ public class CategoryService : ICategoryService
 
         if (category is null)
         {
-            return ApiResponseDto<CategoryResponseDto>.ErrorResult(
+            return ApiResponseDto<CategoryResponseDto>.NotFoundResult(
                 "Category not found.");
         }
 
@@ -108,7 +108,7 @@ public class CategoryService : ICategoryService
 
         if (category is null)
         {
-            return ApiResponseDto<bool>.ErrorResult(
+            return ApiResponseDto<bool>.NotFoundResult(
                 "Category not found.");
         }
 
@@ -116,7 +116,7 @@ public class CategoryService : ICategoryService
 
         if (hasMenuItems)
         {
-            return ApiResponseDto<bool>.ErrorResult(
+            return ApiResponseDto<bool>.ConflictResult(
                 "Cannot delete a category that contains menu items.");
         }
 

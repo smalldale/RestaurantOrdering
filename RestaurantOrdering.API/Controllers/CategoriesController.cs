@@ -61,7 +61,7 @@ public class CategoriesController : ControllerBase
         var result = await _categoryService.GetByIdAsync(id);
 
         if (!result.Success)
-            return NotFound(result);
+            return StatusCode(result.StatusCode, result);
 
         return Ok(result);
     }
@@ -89,7 +89,7 @@ public class CategoriesController : ControllerBase
         var result = await _categoryService.CreateAsync(dto);
 
         if (!result.Success)
-            return BadRequest(result);
+            return StatusCode(result.StatusCode, result);
 
         return CreatedAtAction(
             nameof(GetById),
@@ -121,7 +121,7 @@ public class CategoriesController : ControllerBase
         var result = await _categoryService.UpdateAsync(id, dto);
 
         if (!result.Success)
-            return BadRequest(result);
+            return StatusCode(result.StatusCode, result);
 
         return Ok(result);
     }
@@ -135,7 +135,7 @@ public class CategoriesController : ControllerBase
         var result = await _categoryService.DeleteAsync(id);
 
         if (!result.Success)
-            return BadRequest(result);
+            return StatusCode(result.StatusCode, result);
 
         return Ok(result);
     }
