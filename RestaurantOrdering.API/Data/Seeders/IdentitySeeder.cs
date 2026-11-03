@@ -5,10 +5,16 @@ namespace RestaurantOrdering.API.Data.Seeders;
 
 /// <summary>
 /// Seeds authentication-related data:
-/// Admin and Staff roles, and the initial Admin account.
+/// Admin and Staff roles, plus the initial Admin and Staff accounts.
 /// </summary>
 public static class IdentitySeeder
 {
+    private const string AdminEmail = "admin@restaurant.com";
+    private const string AdminPassword = "Admin1234";
+
+    private const string StaffEmail = "staff@restaurant.com";
+    private const string StaffPassword = "Staff1234";
+
     public static async Task EnsureSeededAsync(
         IServiceProvider serviceProvider)
     {
@@ -37,56 +43,67 @@ public static class IdentitySeeder
             }
         }
 
-        // Get initial Admin credentials from environment variables
-        var adminEmail = Environment.GetEnvironmentVariable(
-            "INITIAL_ADMIN_EMAIL");
+        // Seed the initial Admin account
+        await EnsureUserAsync(
+            userManager,
+            AdminEmail,
+            AdminPassword,
+            "System",
+            "Administrator",
+            "Admin");
 
-        var adminPassword = Environment.GetEnvironmentVariable(
-            "INITIAL_ADMIN_PASSWORD");
+        // Seed the initial Staff account
+        await EnsureUserAsync(
+            userManager,
+            StaffEmail,
+            StaffPassword,
+            "Restaurant",
+            "Staff",
+            "Staff");
+    }
 
-        if (string.IsNullOrWhiteSpace(adminEmail) ||
-            string.IsNullOrWhiteSpace(adminPassword))
+    private static async Task EnsureUserAsync(
+        UserManager<ApplicationUser> userManager,
+        string email,
+        string password,
+        string firstName,
+        string lastName,
+        string role)
+    {
+        var user = await userManager.FindByEmailAsync(email);
+
+        if (user is null)
         {
-            return;
-        }
-
-        // Check whether the Admin account already exists
-        var adminUser = await userManager.FindByEmailAsync(adminEmail);
-
-        if (adminUser is null)
-        {
-            adminUser = new ApplicationUser
+            user = new ApplicationUser
             {
-                UserName = adminEmail,
-                Email = adminEmail,
-                FirstName = "System",
-                LastName = "Administrator",
+                UserName = email,
+                Email = email,
+                FirstName = firstName,
+                LastName = lastName,
                 EmailConfirmed = true,
                 CreatedAt = DateTime.UtcNow,
                 IsActive = true
             };
 
-            var result = await userManager.CreateAsync(
-                adminUser, adminPassword);
+            var result = await userManager.CreateAsync(user, password);
 
             if (!result.Succeeded)
             {
                 throw new InvalidOperationException(
-                    "Failed to create initial Admin: " +
+                    $"Failed to create user '{email}': " +
                     string.Join(", ", result.Errors.Select(e => e.Description)));
             }
         }
 
-        // Ensure the Admin account has the Admin role
-        if (!await userManager.IsInRoleAsync(adminUser, "Admin"))
+        // Ensure the account has the expected role
+        if (!await userManager.IsInRoleAsync(user, role))
         {
-            var result = await userManager.AddToRoleAsync(
-                adminUser, "Admin");
+            var result = await userManager.AddToRoleAsync(user, role);
 
             if (!result.Succeeded)
             {
                 throw new InvalidOperationException(
-                    "Failed to assign Admin role: " +
+                    $"Failed to assign role '{role}' to '{email}': " +
                     string.Join(", ", result.Errors.Select(e => e.Description)));
             }
         }
